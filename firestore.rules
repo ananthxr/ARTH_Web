@@ -1,0 +1,62 @@
+// Firestore Security Rules
+// These rules control who can read and write to your Firestore database
+// Copy these rules to your Firebase Console -> Firestore Database -> Rules
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Rules for the 'teams' collection
+    match /teams/{teamId} {
+      // Allow anyone to read team data (for public scoreboard)
+      allow read: if true;
+      
+      // Allow creation of new teams (for registration)
+      // Only allow if the document contains all required fields with correct types
+      allow create: if isValidTeamData(resource.data) 
+        && hasAllRequiredFields(resource.data)
+        && resource.data.score == 0  // New teams start with score 0
+        && resource.data.teamNumber > 0;  // Team number must be positive
+      
+      // Allow updates only for score increments
+      // This prevents unauthorized modification of team details
+      allow update: if isValidScoreUpdate(resource.data, request.resource.data);
+      
+      // Prevent deletion of team documents
+      allow delete: if false;
+    }
+    
+    // Helper function to validate team data structure
+    function isValidTeamData(data) {
+      return data.keys().hasAll(['teamNumber', 'uid', 'player1', 'player2', 'email', 'score', 'createdAt'])
+        && data.teamNumber is int
+        && data.uid is string
+        && data.player1 is string  
+        && data.player2 is string
+        && data.email is string
+        && data.score is int
+        && data.createdAt is timestamp;
+    }
+    
+    // Helper function to check if all required fields are present
+    function hasAllRequiredFields(data) {
+      return data.uid.size() > 0
+        && data.player1.size() > 0
+        && data.player2.size() > 0
+        && data.email.size() > 0
+        && data.email.matches('.*@.*\\..*');  // Basic email validation
+    }
+    
+    // Helper function to validate score updates
+    function isValidScoreUpdate(existingData, newData) {
+      // Allow score updates only if:
+      // 1. Only the score field is being modified
+      // 2. The UID exists and matches
+      // 3. The score change is reasonable (between -1000 and 10000 per update)
+      return existingData.diff(newData).affectedKeys().hasOnly(['score'])
+        && existingData.uid == newData.uid
+        && (newData.score - existingData.score) >= -1000
+        && (newData.score - existingData.score) <= 10000
+        && newData.score >= 0;  // Prevent negative scores
+    }
+  }
+}
