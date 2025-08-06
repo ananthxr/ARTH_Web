@@ -111,7 +111,7 @@ export default function Scoreboard() {
               </thead>
               <tbody>
                 {teams.map((team, index) => (
-                  <tr key={team.id || team.teamName}>
+                  <tr key={team.teamName}>
                     {/* Rank - based on position in sorted array */}
                     <td>
                       {index === 0 && team.score > 0 ? (
