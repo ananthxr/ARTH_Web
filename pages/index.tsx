@@ -96,8 +96,8 @@ export default function Home() {
 
   return (
     <Layout 
-      title="Tournament Registration" 
-      description="Register your team for the tournament"
+      title="AR Treasure Hunt Registration" 
+      description="Join the AR treasure hunt adventure by Curiospark"
     >
       <div className="form-container">
         {/* Show success message if team was registered */}
@@ -137,9 +137,33 @@ export default function Home() {
         {/* Registration form - only show if no team is registered */}
         {!registeredTeam && (
           <form onSubmit={handleSubmit}>
-            <h2 style={{ marginBottom: '1.5rem', textAlign: 'center', color: '#333' }}>
-              Register Your Team
-            </h2>
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+              <h1 style={{ 
+                fontSize: '2.5rem',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                fontWeight: 'bold',
+                margin: '0 0 0.5rem 0'
+              }}>
+                🏴‍☠️ AR Treasure Hunt
+              </h1>
+              <p style={{ 
+                fontSize: '1.2rem', 
+                color: '#666', 
+                margin: '0 0 1rem 0' 
+              }}>
+                Presented by <strong style={{ color: '#667eea' }}>Curiospark</strong>
+              </p>
+              <h2 style={{ 
+                fontSize: '1.5rem',
+                color: '#333',
+                margin: '0'
+              }}>
+                ⚔️ Register Your Crew
+              </h2>
+            </div>
 
             {/* Team Name */}
             <div className="form-group">
@@ -228,7 +252,7 @@ export default function Home() {
               className="btn"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Registering Team...' : 'Register Team'}
+              {isSubmitting ? 'Registering Crew...' : '⚔️ Register Crew'}
             </button>
           </form>
         )}
@@ -237,11 +261,11 @@ export default function Home() {
         <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
           <h4 style={{ marginBottom: '0.5rem', color: '#495057' }}>How it works:</h4>
           <ol style={{ paddingLeft: '1.5rem', color: '#6c757d' }}>
-            <li>Choose a unique team name and fill in all player details</li>
-            <li>Provide contact information (email & phone number)</li>
-            <li>Click "Register Team" to get your team number</li>
-            <li>Save your Team Name - you'll need it for the game</li>
-            <li>Check the live scoreboard to see your team's progress</li>
+            <li>🏴‍☠️ Choose a unique crew name and add your adventurers</li>
+            <li>📱 Provide contact information for quest updates</li>
+            <li>⚡ Click "Register Crew" to get your unique treasure hunter ID</li>
+            <li>🎮 Enter your UID in the AR app to begin the hunt</li>
+            <li>🏆 Watch the live leaderboard as you collect treasures!</li>
           </ol>
         </div>
       </div>

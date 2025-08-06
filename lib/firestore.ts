@@ -229,15 +229,35 @@ export async function getAllTeams(): Promise<Team[]> {
  * This function will call the callback whenever team data changes
  */
 export function subscribeToScoreboard(callback: (teams: Team[]) => void) {
-  const teamsRef = collection(db, 'teams');
-  const q = query(teamsRef, orderBy('score', 'desc'), orderBy('teamNumber', 'asc'));
-  
-  // Return the unsubscribe function so we can clean up the listener
-  return onSnapshot(q, (snapshot) => {
-    const teams = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    } as Team));
-    callback(teams);
-  });
+  try {
+    const teamsRef = collection(db, 'teams');
+    const q = query(teamsRef, orderBy('score', 'desc'), orderBy('teamNumber', 'asc'));
+    
+    console.log('Setting up Firestore listener for teams collection...');
+    
+    // Return the unsubscribe function so we can clean up the listener
+    return onSnapshot(q, 
+      (snapshot) => {
+        console.log('Firestore snapshot received, docs count:', snapshot.docs.length);
+        const teams = snapshot.docs.map(doc => {
+          const data = doc.data();
+          console.log('Team data:', { id: doc.id, ...data });
+          return {
+            id: doc.id,
+            ...data
+          } as Team;
+        });
+        callback(teams);
+      },
+      (error) => {
+        console.error('Firestore listener error:', error);
+        // Still call callback with empty array to update UI state
+        callback([]);
+      }
+    );
+  } catch (error) {
+    console.error('Error setting up Firestore listener:', error);
+    // Return a dummy unsubscribe function
+    return () => {};
+  }
 }
