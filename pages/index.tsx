@@ -138,17 +138,21 @@ export default function Home() {
         {!registeredTeam && (
           <form onSubmit={handleSubmit}>
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-              <h1 style={{ 
-                fontSize: '2.5rem',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                fontWeight: 'bold',
-                margin: '0 0 0.5rem 0'
+            <h1 style={{
+              fontSize: '2.5rem',
+              fontWeight: 'bold',
+              margin: '0 0 0.5rem 0'
               }}>
-                🏴‍☠️ AR Treasure Hunt
-              </h1>
+              <span style={{ marginRight: '0.5rem' }}>🏴‍☠️</span>
+              <span style={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text'
+          }}>
+    AR Treasure Hunt
+        </span>
+            </h1>
               <p style={{ 
                 fontSize: '1.2rem', 
                 color: '#666', 

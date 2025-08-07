@@ -47,13 +47,14 @@ export function generateUID(): string {
 
 /**
  * Check if a team name is already taken
- * Now we just check if the document exists with that ID
+ * Now we search through all documents to check team names
  */
 export async function isTeamNameTaken(teamName: string): Promise<boolean> {
   try {
-    const teamDocRef = doc(db, 'teams', teamName);
-    const teamSnapshot = await getDoc(teamDocRef);
-    return teamSnapshot.exists();
+    const teamsRef = collection(db, 'teams');
+    const q = query(teamsRef, where('teamName', '==', teamName));
+    const snapshot = await getDocs(q);
+    return !snapshot.empty;
   } catch (error) {
     console.error('Error checking team name:', error);
     return true; // Return true to be safe and prevent duplicates
@@ -133,13 +134,13 @@ export async function registerTeam(
       createdAt: Timestamp.now()
     };
 
-    // Use team name as document ID
-    const teamDocRef = doc(db, 'teams', teamName);
+    // Use UID as document ID for easier Unity integration
+    const teamDocRef = doc(db, 'teams', uid);
     await setDoc(teamDocRef, teamData);
     
-    // Return the team data with the team name as document ID
+    // Return the team data with the UID as document ID
     return {
-      id: teamName,
+      id: uid,
       ...teamData
     };
   } catch (error) {
@@ -153,22 +154,20 @@ export async function registerTeam(
 
 /**
  * Update a team's score using their UID (for Unity integration)
- * Used by the Unity game to update scores
+ * Used by the Unity game to update scores - now direct access since UID is document ID
  */
 export async function updateScore(uid: string, scoreIncrement: number): Promise<boolean> {
   try {
-    // We still need to query by UID since Unity uses UID, not team name
-    const teamsRef = collection(db, 'teams');
-    const q = query(teamsRef, where('uid', '==', uid));
-    const querySnapshot = await getDocs(q);
+    // Direct document access using UID as document ID
+    const teamDocRef = doc(db, 'teams', uid);
+    const teamSnapshot = await getDoc(teamDocRef);
     
-    if (querySnapshot.empty) {
+    if (!teamSnapshot.exists()) {
       throw new Error('Team not found with the provided UID');
     }
 
     // Update the score (increment by the provided amount)
-    const teamDoc = querySnapshot.docs[0];
-    await updateDoc(teamDoc.ref, {
+    await updateDoc(teamDocRef, {
       score: increment(scoreIncrement)
     });
 
@@ -180,21 +179,23 @@ export async function updateScore(uid: string, scoreIncrement: number): Promise<
 }
 
 /**
- * Alternative: Update score using team name directly (faster)
+ * Alternative: Update score using team name (requires query since UID is now document ID)
  * This can be used if you have the team name instead of UID
  */
 export async function updateScoreByTeamName(teamName: string, scoreIncrement: number): Promise<boolean> {
   try {
-    // Direct document access using team name as ID
-    const teamDocRef = doc(db, 'teams', teamName);
-    const teamSnapshot = await getDoc(teamDocRef);
+    // Query to find team by team name
+    const teamsRef = collection(db, 'teams');
+    const q = query(teamsRef, where('teamName', '==', teamName));
+    const querySnapshot = await getDocs(q);
     
-    if (!teamSnapshot.exists()) {
+    if (querySnapshot.empty) {
       throw new Error('Team not found with the provided team name');
     }
 
     // Update the score (increment by the provided amount)
-    await updateDoc(teamDocRef, {
+    const teamDoc = querySnapshot.docs[0];
+    await updateDoc(teamDoc.ref, {
       score: increment(scoreIncrement)
     });
 
