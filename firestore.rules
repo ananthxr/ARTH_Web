@@ -27,12 +27,14 @@ service cloud.firestore {
     
     // Helper function to validate team data structure
     function isValidTeamData(data) {
-      return data.keys().hasAll(['teamNumber', 'uid', 'player1', 'player2', 'email', 'score', 'createdAt'])
+      return data.keys().hasAll(['teamNumber', 'teamName', 'uid', 'player1', 'player2', 'email', 'phoneNumber', 'score', 'createdAt'])
         && data.teamNumber is int
+        && data.teamName is string
         && data.uid is string
         && data.player1 is string  
         && data.player2 is string
         && data.email is string
+        && data.phoneNumber is string
         && data.score is int
         && data.createdAt is timestamp;
     }

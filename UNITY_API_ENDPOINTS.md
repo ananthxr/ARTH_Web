@@ -27,6 +27,8 @@ POST /api/register
 }
 ```
 
+**Note:** All fields are required. Team names must be unique and between 2-30 characters.
+
 **Success Response (201):**
 ```json
 {
@@ -39,7 +41,8 @@ POST /api/register
     "player2": "Jane Smith",
     "email": "team@example.com",
     "phoneNumber": "+1234567890",
-    "score": 0
+    "score": 0,
+    "createdAt": "2024-01-01T00:00:00Z"
   }
 }
 ```
@@ -53,16 +56,24 @@ POST /api/register
 ```
 
 ### 2. 🎯 Update Team Score
-**Update a team's score using their UID (for Unity)**
+**Update a team's score using their UID or team name**
 
 ```
 POST /api/update-score
 ```
 
-**Request Body:**
+**Request Body (Using UID):**
 ```json
 {
   "uid": "qK234",
+  "scoreIncrement": 100
+}
+```
+
+**Request Body (Using Team Name):**
+```json
+{
+  "teamName": "DragonHunters",
   "scoreIncrement": 100
 }
 ```
@@ -71,7 +82,7 @@ POST /api/update-score
 ```json
 {
   "success": true,
-  "message": "Score updated successfully. Added 100 points to team qK234."
+  "message": "Score updated successfully. Added 100 points to team DragonHunters (qK234)."
 }
 ```
 
@@ -79,7 +90,7 @@ POST /api/update-score
 ```json
 {
   "success": false,
-  "error": "Team not found with the provided UID"
+  "error": "Team not found with the provided UID or team name"
 }
 ```
 

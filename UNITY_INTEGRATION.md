@@ -1,8 +1,8 @@
 # 🎮 Unity Integration Guide - UPDATED SYSTEM
 
-⚠️ **BREAKING CHANGES**: This system now uses **team names** instead of random UIDs. Please update your Unity integration.
+⚠️ **SYSTEM UPDATE**: This system now uses **team names as primary identifiers** with UIDs as secondary lookup keys.
 
-This guide shows you exactly how to connect your Unity game to the updated tournament scoreboard system.
+This guide shows you exactly how to connect your Unity game to the updated tournament scoreboard system with team name support.
 
 ## 📝 Quick Setup Checklist
 
@@ -39,9 +39,11 @@ using System.Collections.Generic;
 [System.Serializable]
 public class TeamRegistration
 {
+    public string teamName;
     public string player1;
     public string player2;  
     public string email;
+    public string phoneNumber;
 }
 
 [System.Serializable]
@@ -101,9 +103,9 @@ public class ScoreManager : MonoBehaviour
     /// Register a new team for the tournament
     /// Call this from your game's registration UI
     /// </summary>
-    public void RegisterTeam(string player1, string player2, string email)
+    public void RegisterTeam(string teamName, string player1, string player2, string email, string phoneNumber)
     {
-        StartCoroutine(RegisterTeamCoroutine(player1, player2, email));
+        StartCoroutine(RegisterTeamCoroutine(teamName, player1, player2, email, phoneNumber));
     }
     
     /// <summary>
@@ -130,16 +132,18 @@ public class ScoreManager : MonoBehaviour
         StartCoroutine(GetScoreboardCoroutine());
     }
     
-    private IEnumerator RegisterTeamCoroutine(string player1, string player2, string email)
+    private IEnumerator RegisterTeamCoroutine(string teamName, string player1, string player2, string email, string phoneNumber)
     {
         Log("Registering team...");
         
         // Create registration data
         TeamRegistration registration = new TeamRegistration
         {
+            teamName = teamName,
             player1 = player1,
             player2 = player2,
-            email = email
+            email = email,
+            phoneNumber = phoneNumber
         };
         
         string jsonData = JsonUtility.ToJson(registration);
@@ -164,6 +168,9 @@ public class ScoreManager : MonoBehaviour
                 player1Name = response.data.player1;  
                 player2Name = response.data.player2;
                 SaveTeamData();
+                
+                // Also save team name for future reference
+                PlayerPrefs.SetString("TeamName", response.data.teamName);
                 
                 Log($"Team registered successfully!");
                 Log($"Team Number: {response.data.teamNumber}");
@@ -329,8 +336,8 @@ public class ScoreManager : MonoBehaviour
 // Get the ScoreManager component
 ScoreManager scoreManager = FindObjectOfType<ScoreManager>();
 
-// Register team with player names and email
-scoreManager.RegisterTeam("Alice", "Bob", "team@example.com");
+// Register team with team name, player names, email, and phone
+scoreManager.RegisterTeam("DragonHunters", "Alice", "Bob", "team@example.com", "+1234567890");
 ```
 
 #### Add Points During Gameplay
@@ -362,9 +369,11 @@ using UnityEngine.UI;
 public class RegistrationUI : MonoBehaviour
 {
     [Header("UI Elements")]
+    public InputField teamNameInput;
     public InputField player1Input;
     public InputField player2Input; 
     public InputField emailInput;
+    public InputField phoneInput;
     public Button registerButton;
     public Text statusText;
     
@@ -378,11 +387,13 @@ public class RegistrationUI : MonoBehaviour
     
     private void RegisterTeam()
     {
+        string teamName = teamNameInput.text.Trim();
         string player1 = player1Input.text.Trim();
         string player2 = player2Input.text.Trim();
         string email = emailInput.text.Trim();
+        string phone = phoneInput.text.Trim();
         
-        if (string.IsNullOrEmpty(player1) || string.IsNullOrEmpty(player2) || string.IsNullOrEmpty(email))
+        if (string.IsNullOrEmpty(teamName) || string.IsNullOrEmpty(player1) || string.IsNullOrEmpty(player2) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(phone))
         {
             statusText.text = "Please fill in all fields";
             return;
@@ -391,7 +402,7 @@ public class RegistrationUI : MonoBehaviour
         statusText.text = "Registering team...";
         registerButton.interactable = false;
         
-        scoreManager.RegisterTeam(player1, player2, email);
+        scoreManager.RegisterTeam(teamName, player1, player2, email, phone);
     }
 }
 ```

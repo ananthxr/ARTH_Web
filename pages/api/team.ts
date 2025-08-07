@@ -36,18 +36,18 @@ export default async function handler(
     try {
       let team: Team | null = null;
 
-      if (teamName && typeof teamName === 'string') {
-        // Direct document access by team name (faster)
-        const teamDocRef = doc(db, 'teams', teamName);
+      if (uid && typeof uid === 'string') {
+        // Direct document access by UID (documents are stored with UID as ID)
+        const teamDocRef = doc(db, 'teams', uid);
         const teamSnapshot = await getDoc(teamDocRef);
         
         if (teamSnapshot.exists()) {
           team = { id: teamSnapshot.id, ...teamSnapshot.data() } as Team;
         }
-      } else if (uid && typeof uid === 'string') {
-        // Query by UID
+      } else if (teamName && typeof teamName === 'string') {
+        // Query by team name
         const teamsRef = collection(db, 'teams');
-        const q = query(teamsRef, where('uid', '==', uid));
+        const q = query(teamsRef, where('teamName', '==', teamName));
         const querySnapshot = await getDocs(q);
         
         if (!querySnapshot.empty) {
@@ -90,18 +90,18 @@ export default async function handler(
     try {
       let team: Team | null = null;
 
-      if (teamName) {
-        // Direct document access by team name (faster)
-        const teamDocRef = doc(db, 'teams', teamName);
+      if (uid) {
+        // Direct document access by UID (documents are stored with UID as ID)
+        const teamDocRef = doc(db, 'teams', uid);
         const teamSnapshot = await getDoc(teamDocRef);
         
         if (teamSnapshot.exists()) {
           team = { id: teamSnapshot.id, ...teamSnapshot.data() } as Team;
         }
-      } else if (uid) {
-        // Query by UID
+      } else if (teamName) {
+        // Query by team name
         const teamsRef = collection(db, 'teams');
-        const q = query(teamsRef, where('uid', '==', uid));
+        const q = query(teamsRef, where('teamName', '==', teamName));
         const querySnapshot = await getDocs(q);
         
         if (!querySnapshot.empty) {
