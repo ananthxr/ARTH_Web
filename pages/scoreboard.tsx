@@ -2,6 +2,7 @@
 // Real-time leaderboard for Curiospark's AR Treasure Hunt
 
 import { useState, useEffect, useRef } from 'react';
+import Head from 'next/head';
 import Layout from '@/components/Layout';
 import { subscribeToScoreboard, type Team } from '@/lib/firestore';
 
@@ -89,6 +90,9 @@ export default function Scoreboard() {
 
   return (
     <>
+      <Head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+      </Head>
       {/* Animated Background with Large Treasure Images */}
       <div className="treasure-background">
         {/* Large Treasure Images */}
@@ -122,11 +126,31 @@ export default function Scoreboard() {
 
       {/* Global Styles */}
       <style jsx global>{`
+        * {
+          box-sizing: border-box;
+        }
+
+        html {
+          font-size: 16px;
+          -webkit-text-size-adjust: 100%;
+          -ms-text-size-adjust: 100%;
+        }
+
         body {
           background: linear-gradient(135deg, #1e3c72 0%, #2a5298 25%, #3d4e81 50%, #5f2c82 75%, #49a09d 100%);
           background-attachment: fixed;
           min-height: 100vh;
           overflow-x: hidden;
+          margin: 0;
+          padding: 0;
+          font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+        }
+
+        /* Mobile-specific background fix */
+        @media (max-width: 768px) {
+          body {
+            background-attachment: scroll;
+          }
         }
 
         .treasure-background {
@@ -438,31 +462,116 @@ export default function Scoreboard() {
             0 0 30px rgba(255,215,0,0.1);
         }
 
+        /* Mobile Responsive Styles */
         @media (max-width: 768px) {
           .floating-treasure-large {
-            width: 100px;
-            height: 100px;
+            width: 80px;
+            height: 80px;
           }
           
           .pirate-ship-large {
-            width: 130px;
-            height: 100px;
+            width: 100px;
+            height: 80px;
           }
 
           .treasure-chest-large {
-            left: 5%;
+            left: 3%;
+            top: 12%;
           }
 
           .diamond-large {
-            right: 5%;
+            right: 3%;
+            top: 20%;
           }
 
           .compass-large {
-            right: 15%;
+            right: 12%;
+            top: 35%;
           }
 
           .anchor-large {
-            left: 60%;
+            left: 65%;
+            bottom: 12%;
+          }
+
+          .treasure-map-large {
+            left: 8%;
+            bottom: 20%;
+          }
+
+          .pirate-ship-large {
+            right: 3%;
+            top: 58%;
+          }
+
+          /* Make containers mobile-friendly */
+          .parallax-element {
+            transform: none !important; /* Disable parallax on mobile */
+            margin: 0.5rem;
+            padding: 1.5rem !important;
+          }
+
+          /* Team cards mobile optimization */
+          .team-card {
+            margin: 0 0.5rem 1rem 0.5rem;
+            padding: 1.5rem 1rem;
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+          }
+
+          /* Responsive grid for stats */
+          .stats-grid {
+            grid-template-columns: 1fr 1fr !important;
+            gap: 1rem;
+          }
+
+          /* Mobile-friendly text sizes */
+          h1 {
+            font-size: clamp(1.5rem, 4vw, 2.5rem) !important;
+          }
+
+          h2 {
+            font-size: clamp(1.2rem, 3vw, 1.8rem) !important;
+          }
+
+          h3 {
+            font-size: clamp(1.1rem, 2.5vw, 1.5rem) !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .floating-treasure-large {
+            width: 60px;
+            height: 60px;
+          }
+          
+          .pirate-ship-large {
+            width: 80px;
+            height: 60px;
+          }
+
+          .parallax-element {
+            margin: 0.25rem;
+            padding: 1rem !important;
+          }
+
+          .team-card {
+            margin: 0 0.25rem 0.75rem 0.25rem;
+            padding: 1rem 0.75rem;
+          }
+
+          /* Even smaller treasure elements on very small screens */
+          .treasure-chest-large {
+            left: 2%;
+          }
+
+          .diamond-large {
+            right: 2%;
+          }
+
+          .anchor-large {
+            left: 70%;
           }
         }
       `}</style>

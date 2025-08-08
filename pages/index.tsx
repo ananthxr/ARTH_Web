@@ -2,6 +2,7 @@
 // This is the main registration page where teams sign up
 
 import { useState, useEffect } from 'react';
+import Head from 'next/head';
 import Layout from '@/components/Layout';
 import { registerTeam, type Team } from '@/lib/firestore';
 
@@ -107,6 +108,9 @@ export default function Home() {
 
   return (
     <>
+      <Head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+      </Head>
       {/* Animated Background with Images and Liquid Effects */}
       <div className="treasure-hunt-bg">
         {/* Large Treasure Images */}
@@ -155,11 +159,31 @@ export default function Home() {
 
       {/* Global Styles */}
       <style jsx global>{`
+        * {
+          box-sizing: border-box;
+        }
+
+        html {
+          font-size: 16px;
+          -webkit-text-size-adjust: 100%;
+          -ms-text-size-adjust: 100%;
+        }
+
         body {
           background: linear-gradient(135deg, #0F2027 0%, #203A43 25%, #2C5364 50%, #1e3c72 75%, #2a5298 100%);
           background-attachment: fixed;
           min-height: 100vh;
           overflow-x: hidden;
+          margin: 0;
+          padding: 0;
+          font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+        }
+
+        /* Mobile-specific background fix */
+        @media (max-width: 768px) {
+          body {
+            background-attachment: scroll;
+          }
         }
 
         .treasure-hunt-bg {
@@ -392,6 +416,28 @@ export default function Home() {
             inset 0 1px 0 rgba(255, 255, 255, 0.4);
           position: relative;
           overflow: hidden;
+          margin: 1rem;
+          max-width: 800px;
+          margin-left: auto;
+          margin-right: auto;
+          padding: 2rem;
+        }
+
+        @media (max-width: 768px) {
+          .form-container {
+            margin: 0.5rem;
+            border-radius: 15px;
+            padding: 1.5rem;
+            backdrop-filter: blur(15px);
+          }
+        }
+
+        @media (max-width: 480px) {
+          .form-container {
+            margin: 0.25rem;
+            border-radius: 12px;
+            padding: 1rem;
+          }
         }
 
         .form-container::before {
@@ -418,6 +464,29 @@ export default function Home() {
           background: rgba(255, 255, 255, 0.9);
           backdrop-filter: blur(10px);
           position: relative;
+          width: 100%;
+          font-size: 1rem;
+          padding: 1rem 1.5rem;
+          border-radius: 15px;
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+        }
+
+        @media (max-width: 768px) {
+          .form-input {
+            font-size: 1rem;
+            padding: 0.875rem 1.25rem;
+            border-radius: 12px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .form-input {
+            font-size: 16px; /* Prevents zoom on iOS */
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+          }
         }
 
         .form-input:focus {
@@ -427,6 +496,16 @@ export default function Home() {
           box-shadow: 
             0 0 0 4px rgba(102, 126, 234, 0.15),
             0 10px 25px rgba(102, 126, 234, 0.2);
+          outline: none;
+        }
+
+        @media (max-width: 768px) {
+          .form-input:focus {
+            transform: scale(1.01);
+            box-shadow: 
+              0 0 0 3px rgba(102, 126, 234, 0.15),
+              0 5px 15px rgba(102, 126, 234, 0.15);
+          }
         }
 
         .form-input[name="teamName"]:focus {
@@ -445,6 +524,28 @@ export default function Home() {
           position: relative;
           overflow: hidden;
           box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+          width: 100%;
+          text-align: center;
+          cursor: pointer;
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+        }
+
+        @media (max-width: 768px) {
+          .btn {
+            padding: 0.875rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 20px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .btn {
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            border-radius: 15px;
+          }
         }
 
         .btn::before {
@@ -515,23 +616,92 @@ export default function Home() {
 
         @media (max-width: 768px) {
           .floating-treasure-img {
-            width: 80px;
-            height: 80px;
-          }
-          
-          .pirate-ship {
-            width: 120px;
-            height: 80px;
-          }
-
-          .cursor-glow {
             width: 60px;
             height: 60px;
           }
+          
+          .treasure-chest {
+            left: 5%;
+            top: 10%;
+          }
+
+          .pirate-ship {
+            width: 90px;
+            height: 60px;
+            right: 5%;
+            top: 65%;
+          }
+
+          .treasure-map {
+            bottom: 15%;
+            left: 8%;
+          }
+
+          .compass {
+            top: 20%;
+            right: 15%;
+          }
+
+          .gem {
+            bottom: 30%;
+            right: 5%;
+          }
+
+          .cursor-glow {
+            width: 50px;
+            height: 50px;
+          }
 
           .particle {
-            width: 4px;
-            height: 4px;
+            width: 3px;
+            height: 3px;
+          }
+
+          .liquid-wave {
+            height: 80px;
+          }
+
+          .wave-2 {
+            height: 60px;
+          }
+
+          .wave-3 {
+            height: 40px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .floating-treasure-img {
+            width: 45px;
+            height: 45px;
+          }
+          
+          .pirate-ship {
+            width: 70px;
+            height: 45px;
+          }
+
+          .cursor-glow {
+            width: 40px;
+            height: 40px;
+          }
+
+          .particle {
+            width: 2px;
+            height: 2px;
+          }
+
+          .treasure-chest {
+            left: 3%;
+            top: 8%;
+          }
+
+          .compass {
+            right: 10%;
+          }
+
+          .gem {
+            right: 3%;
           }
         }
 
@@ -543,6 +713,18 @@ export default function Home() {
           
           .btn:hover {
             transform: none;
+          }
+
+          .form-input[name="teamName"]:focus {
+            animation: none;
+          }
+
+          .cursor-glow {
+            display: none;
+          }
+
+          .floating-treasure-img {
+            animation-duration: 12s; /* Slower animations on touch */
           }
         }
       `}</style>
@@ -567,7 +749,7 @@ export default function Home() {
               <div style={{
                 display: 'grid',
                 gap: '1rem',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))'
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))'
               }}>
                 <div style={{
                   padding: '1rem',
@@ -665,7 +847,7 @@ export default function Home() {
                   border: '2px solid rgba(255,215,0,0.2)'
                 }}>
                   <h1 style={{
-                    fontSize: 'clamp(2rem, 5vw, 3rem)',
+                    fontSize: 'clamp(1.5rem, 4vw, 3rem)',
                     fontWeight: '600',
                     margin: '0 0 0.5rem 0',
                     fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif',
@@ -673,7 +855,9 @@ export default function Home() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '0.5rem'
+                    gap: '0.5rem',
+                    flexWrap: 'wrap',
+                    textAlign: 'center'
                   }}>
                     <span style={{ fontSize: '1.2em' }}>🏴‍☠️</span>
                     <span style={{
@@ -856,7 +1040,7 @@ export default function Home() {
             <div style={{
               display: 'grid',
               gap: '1rem',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))'
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))'
             }}>
               <div style={{
                 padding: '1rem',
