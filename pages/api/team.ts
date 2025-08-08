@@ -3,7 +3,7 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+import { ref, get } from 'firebase/database';
 import type { Team } from '@/lib/firestore';
 
 type SuccessResponse = {
@@ -37,22 +37,27 @@ export default async function handler(
       let team: Team | null = null;
 
       if (uid && typeof uid === 'string') {
-        // Direct document access by UID (documents are stored with UID as ID)
-        const teamDocRef = doc(db, 'teams', uid);
-        const teamSnapshot = await getDoc(teamDocRef);
+        // Direct access by UID (UID is the main node key)
+        const teamRef = ref(db, uid);
+        const teamSnapshot = await get(teamRef);
         
         if (teamSnapshot.exists()) {
-          team = { id: teamSnapshot.id, ...teamSnapshot.data() } as Team;
+          team = teamSnapshot.val() as Team;
         }
       } else if (teamName && typeof teamName === 'string') {
-        // Query by team name
-        const teamsRef = collection(db, 'teams');
-        const q = query(teamsRef, where('teamName', '==', teamName));
-        const querySnapshot = await getDocs(q);
+        // Search by team name - need to check all root nodes
+        const rootRef = ref(db);
+        const rootSnapshot = await get(rootRef);
         
-        if (!querySnapshot.empty) {
-          const doc = querySnapshot.docs[0];
-          team = { id: doc.id, ...doc.data() } as Team;
+        if (rootSnapshot.exists()) {
+          const allData = rootSnapshot.val();
+          // Find team with matching team name
+          for (const uid in allData) {
+            if (allData[uid] && allData[uid].teamName === teamName) {
+              team = allData[uid] as Team;
+              break;
+            }
+          }
         }
       }
 
@@ -91,22 +96,27 @@ export default async function handler(
       let team: Team | null = null;
 
       if (uid) {
-        // Direct document access by UID (documents are stored with UID as ID)
-        const teamDocRef = doc(db, 'teams', uid);
-        const teamSnapshot = await getDoc(teamDocRef);
+        // Direct access by UID (UID is the main node key)
+        const teamRef = ref(db, uid);
+        const teamSnapshot = await get(teamRef);
         
         if (teamSnapshot.exists()) {
-          team = { id: teamSnapshot.id, ...teamSnapshot.data() } as Team;
+          team = teamSnapshot.val() as Team;
         }
       } else if (teamName) {
-        // Query by team name
-        const teamsRef = collection(db, 'teams');
-        const q = query(teamsRef, where('teamName', '==', teamName));
-        const querySnapshot = await getDocs(q);
+        // Search by team name - need to check all root nodes
+        const rootRef = ref(db);
+        const rootSnapshot = await get(rootRef);
         
-        if (!querySnapshot.empty) {
-          const doc = querySnapshot.docs[0];
-          team = { id: doc.id, ...doc.data() } as Team;
+        if (rootSnapshot.exists()) {
+          const allData = rootSnapshot.val();
+          // Find team with matching team name
+          for (const uid in allData) {
+            if (allData[uid] && allData[uid].teamName === teamName) {
+              team = allData[uid] as Team;
+              break;
+            }
+          }
         }
       }
 

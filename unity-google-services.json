@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "87341937407",
+    "project_id": "arth-33ed6",
+    "storage_bucket": "arth-33ed6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:87341937407:android:your-android-app-id",
+        "android_client_info": {
+          "package_name": "com.yourcompany.yourgame"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCFeVNP6lniD1V7oFOAK3WHtMVsV-Qf9rY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

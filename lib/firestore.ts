@@ -1,40 +1,38 @@
-// Firestore database operations
-// This file contains all the functions to interact with our Firebase database
+// Firebase Realtime Database operations
+// This file contains all the functions to interact with our Firebase Realtime Database
 
 import {
-  collection,
-  addDoc,
-  getDocs,
-  doc,
-  setDoc,
-  updateDoc,
-  increment,
+  ref,
+  set,
+  get,
+  update,
+  push,
+  child,
   query,
-  orderBy,
-  onSnapshot,
-  where,
-  Timestamp,
-  getDoc
-} from 'firebase/firestore';
-import { db } from './firebase';
+  orderByChild,
+  equalTo,
+  onValue,
+  off
+} from 'firebase/database';
+import { db, auth } from './firebase';
+import { signInAnonymously } from 'firebase/auth';
 
 // Define the Team interface to ensure type safety
 export interface Team {
-  id?: string;
+  uid: string; // Unity identifier (like qK234) - now the main node key
   teamNumber: number;
   teamName: string; // User-friendly team name
-  uid: string; // Unity identifier (like qK234)
   player1: string;
   player2: string;
   email: string;
-  phoneNumber: string; // Added phone number
+  phoneNumber: string;
   score: number;
-  createdAt: Timestamp;
+  createdAt: number; // Unix timestamp
 }
 
 /**
  * Generate a random alphanumeric UID (like qK234)
- * This will be used as Unity identifier for each team
+ * This will be used as Unity identifier and main node key for each team
  */
 export function generateUID(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -46,15 +44,40 @@ export function generateUID(): string {
 }
 
 /**
+ * Ensure user is authenticated before database operations
+ */
+async function ensureAuth(): Promise<void> {
+  if (!auth.currentUser) {
+    try {
+      await signInAnonymously(auth);
+    } catch (error) {
+      console.error('Failed to authenticate anonymously:', error);
+      throw new Error('Authentication required');
+    }
+  }
+}
+
+/**
  * Check if a team name is already taken
- * Now we search through all documents to check team names
  */
 export async function isTeamNameTaken(teamName: string): Promise<boolean> {
   try {
-    const teamsRef = collection(db, 'teams');
-    const q = query(teamsRef, where('teamName', '==', teamName));
-    const snapshot = await getDocs(q);
-    return !snapshot.empty;
+    await ensureAuth();
+    const rootRef = ref(db);
+    const snapshot = await get(rootRef);
+    
+    if (!snapshot.exists()) {
+      return false;
+    }
+    
+    const allData = snapshot.val();
+    // Check if any UID node has this team name
+    for (const uid in allData) {
+      if (allData[uid] && allData[uid].teamName === teamName) {
+        return true;
+      }
+    }
+    return false;
   } catch (error) {
     console.error('Error checking team name:', error);
     return true; // Return true to be safe and prevent duplicates
@@ -66,10 +89,22 @@ export async function isTeamNameTaken(teamName: string): Promise<boolean> {
  */
 export async function isEmailTaken(email: string): Promise<boolean> {
   try {
-    const teamsRef = collection(db, 'teams');
-    const q = query(teamsRef, where('email', '==', email));
-    const snapshot = await getDocs(q);
-    return !snapshot.empty;
+    await ensureAuth();
+    const rootRef = ref(db);
+    const snapshot = await get(rootRef);
+    
+    if (!snapshot.exists()) {
+      return false;
+    }
+    
+    const allData = snapshot.val();
+    // Check if any UID node has this email
+    for (const uid in allData) {
+      if (allData[uid] && allData[uid].email === email) {
+        return true;
+      }
+    }
+    return false;
   } catch (error) {
     console.error('Error checking email:', error);
     return true; // Return true to be safe and prevent duplicates
@@ -82,9 +117,23 @@ export async function isEmailTaken(email: string): Promise<boolean> {
  */
 export async function getNextTeamNumber(): Promise<number> {
   try {
-    const teamsRef = collection(db, 'teams');
-    const snapshot = await getDocs(teamsRef);
-    return snapshot.size + 1; // Return count + 1 for the next team number
+    await ensureAuth();
+    const rootRef = ref(db);
+    const snapshot = await get(rootRef);
+    
+    if (!snapshot.exists()) {
+      return 1;
+    }
+    
+    const allData = snapshot.val();
+    // Count only valid team nodes (those with teamName property)
+    let teamCount = 0;
+    for (const uid in allData) {
+      if (allData[uid] && allData[uid].teamName) {
+        teamCount++;
+      }
+    }
+    return teamCount + 1;
   } catch (error) {
     console.error('Error getting team count:', error);
     return 1; // Default to 1 if there's an error
@@ -94,6 +143,7 @@ export async function getNextTeamNumber(): Promise<number> {
 /**
  * Register a new team in the database
  * Returns the team data with assigned team name and number
+ * Data structure: /{uid}/ - UID is the main node
  */
 export async function registerTeam(
   teamName: string,
@@ -103,6 +153,7 @@ export async function registerTeam(
   phoneNumber: string
 ): Promise<Team> {
   try {
+    await ensureAuth();
     // Check for duplicates
     const [isNameTaken, isEmailAlreadyUsed] = await Promise.all([
       isTeamNameTaken(teamName),
@@ -122,27 +173,23 @@ export async function registerTeam(
     const teamNumber = await getNextTeamNumber();
     
     // Create team object
-    const teamData: Omit<Team, 'id'> = {
+    const teamData: Team = {
+      uid,
       teamNumber,
       teamName,
-      uid,
       player1,
       player2,
       email,
       phoneNumber,
       score: 0,
-      createdAt: Timestamp.now()
+      createdAt: Date.now()
     };
 
-    // Use UID as document ID for easier Unity integration
-    const teamDocRef = doc(db, 'teams', uid);
-    await setDoc(teamDocRef, teamData);
+    // Store in Realtime Database with UID as the main node (no parent 'teams' node)
+    const teamRef = ref(db, uid);
+    await set(teamRef, teamData);
     
-    // Return the team data with the UID as document ID
-    return {
-      id: uid,
-      ...teamData
-    };
+    return teamData;
   } catch (error) {
     console.error('Error registering team:', error);
     if (error instanceof Error) {
@@ -154,21 +201,24 @@ export async function registerTeam(
 
 /**
  * Update a team's score using their UID (for Unity integration)
- * Used by the Unity game to update scores - now direct access since UID is document ID
+ * Used by the Unity game to update scores - direct access since UID is the main node
  */
 export async function updateScore(uid: string, scoreIncrement: number): Promise<boolean> {
   try {
-    // Direct document access using UID as document ID
-    const teamDocRef = doc(db, 'teams', uid);
-    const teamSnapshot = await getDoc(teamDocRef);
+    await ensureAuth();
+    const teamRef = ref(db, uid);
+    const snapshot = await get(teamRef);
     
-    if (!teamSnapshot.exists()) {
+    if (!snapshot.exists()) {
       throw new Error('Team not found with the provided UID');
     }
 
-    // Update the score (increment by the provided amount)
-    await updateDoc(teamDocRef, {
-      score: increment(scoreIncrement)
+    const currentTeam = snapshot.val();
+    const newScore = (currentTeam.score || 0) + scoreIncrement;
+
+    // Update the score
+    await update(teamRef, {
+      score: newScore
     });
 
     return true;
@@ -179,24 +229,41 @@ export async function updateScore(uid: string, scoreIncrement: number): Promise<
 }
 
 /**
- * Alternative: Update score using team name (requires query since UID is now document ID)
+ * Alternative: Update score using team name (requires searching through all teams)
  * This can be used if you have the team name instead of UID
  */
 export async function updateScoreByTeamName(teamName: string, scoreIncrement: number): Promise<boolean> {
   try {
-    // Query to find team by team name
-    const teamsRef = collection(db, 'teams');
-    const q = query(teamsRef, where('teamName', '==', teamName));
-    const querySnapshot = await getDocs(q);
+    await ensureAuth();
+    const rootRef = ref(db);
+    const snapshot = await get(rootRef);
     
-    if (querySnapshot.empty) {
+    if (!snapshot.exists()) {
+      throw new Error('No teams found in database');
+    }
+
+    const allData = snapshot.val();
+    let targetUID = null;
+    
+    // Find the team with matching team name
+    for (const uid in allData) {
+      if (allData[uid] && allData[uid].teamName === teamName) {
+        targetUID = uid;
+        break;
+      }
+    }
+    
+    if (!targetUID) {
       throw new Error('Team not found with the provided team name');
     }
 
-    // Update the score (increment by the provided amount)
-    const teamDoc = querySnapshot.docs[0];
-    await updateDoc(teamDoc.ref, {
-      score: increment(scoreIncrement)
+    const currentScore = allData[targetUID].score || 0;
+    const newScore = currentScore + scoreIncrement;
+
+    // Update the score
+    const teamRef = ref(db, targetUID);
+    await update(teamRef, {
+      score: newScore
     });
 
     return true;
@@ -211,14 +278,33 @@ export async function updateScoreByTeamName(teamName: string, scoreIncrement: nu
  */
 export async function getAllTeams(): Promise<Team[]> {
   try {
-    const teamsRef = collection(db, 'teams');
-    const q = query(teamsRef, orderBy('score', 'desc'), orderBy('teamNumber', 'asc'));
-    const snapshot = await getDocs(q);
+    await ensureAuth();
+    const rootRef = ref(db);
+    const snapshot = await get(rootRef);
     
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    } as Team));
+    if (!snapshot.exists()) {
+      return [];
+    }
+
+    const allData = snapshot.val();
+    const teamsArray: Team[] = [];
+    
+    // Filter only valid team nodes (those with teamName property)
+    for (const uid in allData) {
+      if (allData[uid] && allData[uid].teamName) {
+        teamsArray.push(allData[uid] as Team);
+      }
+    }
+    
+    // Sort by score (highest first), then by team number (ascending)
+    teamsArray.sort((a, b) => {
+      if (b.score !== a.score) {
+        return b.score - a.score; // Higher score first
+      }
+      return a.teamNumber - b.teamNumber; // Lower team number first if scores are equal
+    });
+    
+    return teamsArray;
   } catch (error) {
     console.error('Error getting teams:', error);
     return [];
@@ -229,35 +315,58 @@ export async function getAllTeams(): Promise<Team[]> {
  * Set up real-time listener for scoreboard updates
  * This function will call the callback whenever team data changes
  */
-export function subscribeToScoreboard(callback: (teams: Team[]) => void) {
+export function subscribeToScoreboard(callback: (teams: Team[]) => void): () => void {
   try {
-    const teamsRef = collection(db, 'teams');
-    const q = query(teamsRef, orderBy('score', 'desc'), orderBy('teamNumber', 'asc'));
+    const rootRef = ref(db);
     
-    console.log('Setting up Firestore listener for teams collection...');
+    console.log('Setting up Realtime Database listener for root...');
     
-    // Return the unsubscribe function so we can clean up the listener
-    return onSnapshot(q, 
+    const unsubscribe = onValue(rootRef, 
       (snapshot) => {
-        console.log('Firestore snapshot received, docs count:', snapshot.docs.length);
-        const teams = snapshot.docs.map(doc => {
-          const data = doc.data();
-          console.log('Team data:', { id: doc.id, ...data });
-          return {
-            id: doc.id,
-            ...data
-          } as Team;
+        console.log('Realtime Database snapshot received');
+        
+        if (!snapshot.exists()) {
+          console.log('No data found');
+          callback([]);
+          return;
+        }
+
+        const allData = snapshot.val();
+        const teamsArray: Team[] = [];
+        
+        // Filter only valid team nodes (those with teamName property)
+        for (const uid in allData) {
+          if (allData[uid] && allData[uid].teamName) {
+            teamsArray.push(allData[uid] as Team);
+          }
+        }
+        
+        console.log('Teams data:', teamsArray);
+        
+        // Sort by score (highest first), then by team number (ascending)
+        teamsArray.sort((a, b) => {
+          if (b.score !== a.score) {
+            return b.score - a.score; // Higher score first
+          }
+          return a.teamNumber - b.teamNumber; // Lower team number first if scores are equal
         });
-        callback(teams);
+        
+        callback(teamsArray);
       },
       (error) => {
-        console.error('Firestore listener error:', error);
+        console.error('Realtime Database listener error:', error);
         // Still call callback with empty array to update UI state
         callback([]);
       }
     );
+
+    // Return unsubscribe function
+    return () => {
+      console.log('Unsubscribing from Realtime Database listener');
+      off(rootRef, 'value', unsubscribe);
+    };
   } catch (error) {
-    console.error('Error setting up Firestore listener:', error);
+    console.error('Error setting up Realtime Database listener:', error);
     // Return a dummy unsubscribe function
     return () => {};
   }
