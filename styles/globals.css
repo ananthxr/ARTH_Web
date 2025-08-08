@@ -1,4 +1,13 @@
 /* Global styles for the tournament app */
+/* Force light mode and prevent system dark mode detection */
+:root {
+  color-scheme: light only;
+}
+
+html {
+  color-scheme: light;
+}
+
 /* Reset and base styles */
 * {
   box-sizing: border-box;
@@ -11,8 +20,9 @@ body {
   max-width: 100vw;
   overflow-x: hidden;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f5f5f5;
-  color: #333;
+  background-color: #f5f5f5 !important;
+  color: #333 !important;
+  color-scheme: light;
 }
 
 /* Emoji rendering fixes */
@@ -67,7 +77,7 @@ a {
 
 /* Navigation styles */
 .nav {
-  background: white;
+  background: white !important;
   padding: 1rem 0;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   margin-bottom: 2rem;
@@ -99,7 +109,7 @@ a {
 .form-container {
   max-width: 500px;
   margin: 0 auto;
-  background: white;
+  background: white !important;
   padding: 2rem;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
@@ -113,7 +123,7 @@ a {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 600;
-  color: #555;
+  color: #555 !important;
 }
 
 .form-input {
@@ -123,6 +133,8 @@ a {
   border-radius: 8px;
   font-size: 1rem;
   transition: border-color 0.3s ease;
+  background: white !important;
+  color: #333 !important;
 }
 
 .form-input:focus {
@@ -193,7 +205,7 @@ a {
 /* Table styles for scoreboard */
 .scoreboard-table {
   width: 100%;
-  background: white;
+  background: white !important;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
   overflow: hidden;
@@ -213,16 +225,16 @@ a {
 }
 
 .scoreboard-table th {
-  background: #f7fafc;
+  background: #f7fafc !important;
   font-weight: 700;
-  color: #2d3748;
+  color: #2d3748 !important;
   text-transform: uppercase;
   font-size: 0.875rem;
   letter-spacing: 0.05em;
 }
 
 .scoreboard-table tr:hover {
-  background: #f7fafc;
+  background: #f7fafc !important;
 }
 
 .scoreboard-table td:last-child {
